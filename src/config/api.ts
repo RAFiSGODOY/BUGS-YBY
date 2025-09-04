@@ -11,8 +11,8 @@ export const API_CONFIG = {
   // URL base da API
   BASE_URL: 'https://api.jsonbin.io/v3/b',
   
-  // Bin ID fixo para todos os usuários (não precisa compartilhar)
-  SHARED_BIN_ID: '65f8b8c21f5677401f2b1234', // Este será o ID compartilhado por todos
+  // Bin ID fixo para todos os usuários (será criado automaticamente)
+  SHARED_BIN_ID: 'yby-bugs-shared', // Nome do bin compartilhado
   
   // Intervalo de sincronização automática (em milissegundos)
   SYNC_INTERVAL: 30000, // 30 segundos

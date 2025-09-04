@@ -83,10 +83,22 @@ class ApiService {
 
   // Atualizar dados existentes
   async updateBin(data: any): Promise<ApiResponse<any>> {
-    // Usar sempre o Bin ID fixo compartilhado
-    BIN_ID = API_CONFIG.SHARED_BIN_ID;
-    localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
+    // Verificar se já temos um Bin ID real
+    let binId = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
+    
+    if (!binId || binId === API_CONFIG.SHARED_BIN_ID) {
+      // Se não temos um Bin ID real, criar um novo
+      const createResponse = await this.createBin(data);
+      if (createResponse.success) {
+        BIN_ID = createResponse.data.id;
+        localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
+        console.log('✅ Bin ID criado automaticamente:', BIN_ID);
+        return createResponse;
+      }
+      return createResponse;
+    }
 
+    BIN_ID = binId;
     return this.makeRequest(
       `${API_CONFIG.BASE_URL}/${BIN_ID}`,
       {
@@ -98,10 +110,15 @@ class ApiService {
 
   // Buscar dados
   async getBin(): Promise<ApiResponse<any>> {
-    // Usar sempre o Bin ID fixo compartilhado
-    BIN_ID = API_CONFIG.SHARED_BIN_ID;
-    localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
+    // Verificar se já temos um Bin ID real
+    let binId = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
+    
+    if (!binId || binId === API_CONFIG.SHARED_BIN_ID) {
+      // Se não temos um Bin ID real, retornar erro para criar um novo
+      return { success: false, error: 'Bin ID não encontrado. Criando novo...' };
+    }
 
+    BIN_ID = binId;
     const response = await this.makeRequest(`${API_CONFIG.BASE_URL}/${BIN_ID}/latest`);
     
     if (response.success && response.data) {

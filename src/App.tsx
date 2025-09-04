@@ -5,6 +5,8 @@ import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
 import { SetupInstructions } from './components/SetupInstructions';
 import { ApiTest } from './components/ApiTest';
+import { SharedBinInfo } from './components/SharedBinInfo';
+import { ConnectToSharedBin } from './components/ConnectToSharedBin';
 import { useBugsSync } from './hooks/useBugsSync';
 import { useAuth, AuthProvider } from './hooks/useAuth';
 import { API_CONFIG } from './config/api';
@@ -60,7 +62,16 @@ function AppContent() {
         
         {!isApiKeyConfigured && isAdmin && <SetupInstructions />}
         
-        {isApiKeyConfigured && isAdmin && <ApiTest onForceSync={syncToCloud} />}
+        {isApiKeyConfigured && isAdmin && (
+          <>
+            <SharedBinInfo />
+            <ApiTest onForceSync={syncToCloud} />
+          </>
+        )}
+        
+        {isApiKeyConfigured && !isAdmin && (
+          <ConnectToSharedBin onConnect={() => window.location.reload()} />
+        )}
         
         <BugForm onAdd={addBug} />
         
