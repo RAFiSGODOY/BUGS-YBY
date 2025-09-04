@@ -163,6 +163,7 @@ export function ApiTest({ onForceSync }: ApiTestProps) {
 
         <div className="text-xs text-gray-500">
           <p><strong>URL da API:</strong> {API_CONFIG.BASE_URL}</p>
+          <p><strong>Bin ID Compartilhado:</strong> {API_CONFIG.SHARED_BIN_ID}</p>
           <p><strong>Intervalo de sync:</strong> {API_CONFIG.SYNC_INTERVAL / 1000}s</p>
         </div>
       </div>

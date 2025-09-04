@@ -11,6 +11,9 @@ export const API_CONFIG = {
   // URL base da API
   BASE_URL: 'https://api.jsonbin.io/v3/b',
   
+  // Bin ID fixo para todos os usuários (não precisa compartilhar)
+  SHARED_BIN_ID: '65f8b8c21f5677401f2b1234', // Este será o ID compartilhado por todos
+  
   // Intervalo de sincronização automática (em milissegundos)
   SYNC_INTERVAL: 30000, // 30 segundos
   
@@ -39,4 +42,7 @@ export const SETUP_INSTRUCTIONS = `
 - Sincronização manual com botão
 - Status de conexão em tempo real
 - Mesclagem inteligente de dados
+- Bin ID fixo compartilhado (não precisa configurar manualmente)
+
+🎯 IMPORTANTE: Todos os usuários usam o mesmo Bin ID automaticamente!
 `;

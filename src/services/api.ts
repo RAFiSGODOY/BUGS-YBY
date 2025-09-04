@@ -66,6 +66,11 @@ class ApiService {
         // Salvar o ID no localStorage para uso futuro
         localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
         console.log('✅ Bin criado com ID:', BIN_ID);
+        
+        // IMPORTANTE: Compartilhar o Bin ID para outros usuários
+        // Você pode copiar este ID e compartilhar com seus amigos
+        console.log('🔗 Compartilhe este Bin ID com seus amigos:', BIN_ID);
+        console.log('📋 Cole este ID no campo "Bin ID Compartilhado" abaixo');
       }
     }
 
@@ -78,15 +83,9 @@ class ApiService {
 
   // Atualizar dados existentes
   async updateBin(data: any): Promise<ApiResponse<any>> {
-    if (!BIN_ID) {
-      // Tentar recuperar do localStorage
-      BIN_ID = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
-    }
-
-    if (!BIN_ID) {
-      // Se não existe, criar um novo
-      return this.createBin(data);
-    }
+    // Usar sempre o Bin ID fixo compartilhado
+    BIN_ID = API_CONFIG.SHARED_BIN_ID;
+    localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
 
     return this.makeRequest(
       `${API_CONFIG.BASE_URL}/${BIN_ID}`,
@@ -99,14 +98,9 @@ class ApiService {
 
   // Buscar dados
   async getBin(): Promise<ApiResponse<any>> {
-    if (!BIN_ID) {
-      // Tentar recuperar do localStorage
-      BIN_ID = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
-    }
-
-    if (!BIN_ID) {
-      return { success: false, error: 'Bin ID não encontrado' };
-    }
+    // Usar sempre o Bin ID fixo compartilhado
+    BIN_ID = API_CONFIG.SHARED_BIN_ID;
+    localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
 
     const response = await this.makeRequest(`${API_CONFIG.BASE_URL}/${BIN_ID}/latest`);
     
