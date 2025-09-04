@@ -5,9 +5,10 @@ import { SUPABASE_CONFIG } from '../config/supabase';
 
 interface SupabaseTestProps {
   onForceSync: () => void;
+  onTableCheck?: (exists: boolean) => void;
 }
 
-export function SupabaseTest({ onForceSync }: SupabaseTestProps) {
+export function SupabaseTest({ onForceSync, onTableCheck }: SupabaseTestProps) {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
     success: boolean;
@@ -31,27 +32,43 @@ export function SupabaseTest({ onForceSync }: SupabaseTestProps) {
         throw new Error('Chave anônima do Supabase não configurada');
       }
 
-      // Testar conexão fazendo uma requisição simples
+      // Testar conexão básica primeiro
+      const connectionResponse = await supabaseService.testConnection();
+      
+      if (!connectionResponse.success) {
+        throw new Error(`Erro de conexão: ${connectionResponse.error}`);
+      }
+
+      // Testar busca de bugs
       const response = await supabaseService.getBugs();
       
       if (response.success) {
+        const tableExists = response.data !== null;
+        onTableCheck?.(tableExists);
+        
         setTestResult({
           success: true,
-          message: 'Conexão estabelecida com sucesso!',
+          message: tableExists ? 'Conexão estabelecida com sucesso!' : 'Conexão OK, mas tabela não encontrada',
           details: {
             url: SUPABASE_CONFIG.URL,
             tableName: SUPABASE_CONFIG.TABLE_NAME,
+            tableExists,
             bugsCount: response.data?.length || 0,
             syncInterval: `${SUPABASE_CONFIG.SYNC_INTERVAL / 1000}s`
           }
         });
       } else {
+        // Verificar se é erro de tabela não encontrada
+        const isTableError = response.error?.includes('relation') || response.error?.includes('does not exist');
+        onTableCheck?.(!isTableError);
+        
         setTestResult({
           success: false,
-          message: `Erro na conexão: ${response.error}`,
+          message: isTableError ? 'Tabela não encontrada' : `Erro na conexão: ${response.error}`,
           details: {
             url: SUPABASE_CONFIG.URL,
-            tableName: SUPABASE_CONFIG.TABLE_NAME
+            tableName: SUPABASE_CONFIG.TABLE_NAME,
+            tableExists: !isTableError
           }
         });
       }

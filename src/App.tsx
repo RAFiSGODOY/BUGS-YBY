@@ -5,6 +5,7 @@ import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
 import { SupabaseTest } from './components/SupabaseTest';
 import { SupabaseSetup } from './components/SupabaseSetup';
+import { ConnectionTest } from './components/ConnectionTest';
 import { useBugsSupabase } from './hooks/useBugsSupabase';
 import { useAuth, AuthProvider } from './hooks/useAuth';
 import { SUPABASE_CONFIG } from './config/supabase';
@@ -70,7 +71,12 @@ function AppContent() {
         {!isSupabaseConfigured && isAdmin && <SupabaseSetup />}
 
         {isSupabaseConfigured && isAdmin && (
-          <SupabaseTest onForceSync={syncToCloud} />
+          <>
+            <ConnectionTest />
+            <SupabaseTest 
+              onForceSync={syncToCloud} 
+            />
+          </>
         )}
         
         <BugForm onAdd={addBug} />
