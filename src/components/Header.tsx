@@ -1,13 +1,18 @@
 import React from 'react';
 import { Bug, Target, LogOut, User, Shield } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { SyncStatus } from './SyncStatus';
 
 interface HeaderProps {
   totalBugs: number;
   fixedBugs: number;
+  isOnline?: boolean;
+  lastSync?: Date | null;
+  isSyncing?: boolean;
+  onSync?: () => void;
 }
 
-export function Header({ totalBugs, fixedBugs }: HeaderProps) {
+export function Header({ totalBugs, fixedBugs, isOnline, lastSync, isSyncing, onSync }: HeaderProps) {
   const { user, logout } = useAuth();
   const progressPercentage = totalBugs > 0 ? (fixedBugs / totalBugs) * 100 : 0;
 
@@ -61,6 +66,18 @@ export function Header({ totalBugs, fixedBugs }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Status de Sincronização */}
+      {isOnline !== undefined && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <SyncStatus
+            isOnline={isOnline}
+            lastSync={lastSync}
+            isSyncing={isSyncing || false}
+            onSync={onSync || (() => {})}
+          />
+        </div>
+      )}
       
       {totalBugs > 0 && (
         <div className="mt-4">

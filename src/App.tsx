@@ -4,8 +4,10 @@ import { BugForm } from './components/BugForm';
 import { FilterTabs } from './components/FilterTabs';
 import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
-import { useBugs } from './hooks/useBugs';
+import { SetupInstructions } from './components/SetupInstructions';
+import { useBugsSync } from './hooks/useBugsSync';
 import { useAuth, AuthProvider } from './hooks/useAuth';
+import { API_CONFIG } from './config/api';
 
 function AppContent() {
   const {
@@ -15,8 +17,13 @@ function AppContent() {
     addBug,
     updateBug,
     deleteBug,
-    stats
-  } = useBugs();
+    stats,
+    isOnline,
+    lastSync,
+    isSyncing,
+    syncToCloud,
+    syncFromCloud
+  } = useBugsSync();
 
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -35,10 +42,21 @@ function AppContent() {
     return <LoginForm />;
   }
 
+  const isApiKeyConfigured = API_CONFIG.API_KEY !== 'YOUR_API_KEY_HERE';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Header totalBugs={stats.total} fixedBugs={stats.fixed} />
+        <Header 
+          totalBugs={stats.total} 
+          fixedBugs={stats.fixed}
+          isOnline={isOnline}
+          lastSync={lastSync}
+          isSyncing={isSyncing}
+          onSync={syncFromCloud}
+        />
+        
+        {!isApiKeyConfigured && <SetupInstructions />}
         
         <BugForm onAdd={addBug} />
         
