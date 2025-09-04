@@ -42,16 +42,21 @@ export function BugCard({ bug, onUpdate, onDelete }: BugCardProps) {
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => isAdmin && onUpdate(bug.id, { isFixed: !bug.isFixed })}
+              onClick={() => {
+                if (isAdmin) {
+                  console.log('🔄 Toggle bug completion:', { id: bug.id, currentStatus: bug.isFixed, newStatus: !bug.isFixed });
+                  onUpdate(bug.id, { isFixed: !bug.isFixed });
+                }
+              }}
               disabled={!isAdmin}
               className={`flex items-center justify-center w-6 h-6 rounded-full border-2 transition-all duration-200 ${
                 bug.isFixed
-                  ? 'bg-green-500 border-green-500 text-white'
+                  ? 'bg-green-500 border-green-500 text-white hover:bg-green-600'
                   : isAdmin
-                    ? 'border-gray-300 hover:border-blue-500 cursor-pointer'
+                    ? 'border-gray-300 hover:border-green-500 hover:bg-green-50 cursor-pointer'
                     : 'border-gray-200 cursor-not-allowed opacity-50'
               }`}
-              title={isAdmin ? 'Marcar como corrigido' : 'Apenas administradores podem marcar como corrigido'}
+              title={isAdmin ? (bug.isFixed ? 'Desmarcar como corrigido' : 'Marcar como corrigido') : 'Apenas administradores podem marcar como corrigido'}
             >
               {bug.isFixed ? <Check className="h-4 w-4" /> : !isAdmin && <Lock className="h-3 w-3" />}
             </button>
@@ -183,8 +188,9 @@ export function BugCard({ bug, onUpdate, onDelete }: BugCardProps) {
             Criado em {bug.createdAt.toLocaleDateString('pt-BR')}
           </div>
           {bug.isFixed && bug.fixedAt && (
-            <div className="text-green-600 font-medium">
-              Corrigido em {bug.fixedAt.toLocaleDateString('pt-BR')}
+            <div className="text-green-600 font-medium flex items-center gap-1">
+              <Check className="h-3 w-3" />
+              Corrigido em {bug.fixedAt.toLocaleDateString('pt-BR')} às {bug.fixedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </div>
           )}
         </div>

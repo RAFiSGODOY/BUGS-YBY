@@ -4,6 +4,7 @@ import { FilterTabs } from './components/FilterTabs';
 import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
 import { SupabaseSetup } from './components/SupabaseSetup';
+import { SimpleTest } from './components/SimpleTest';
 import { useBugsSupabase } from './hooks/useBugsSupabase';
 import { useAuth, AuthProvider } from './hooks/useAuth';
 import { SUPABASE_CONFIG } from './config/supabase';
@@ -65,6 +66,7 @@ function AppContent() {
         
         {!isSupabaseConfigured && isAdmin && <SupabaseSetup />}
 
+        {isAdmin && <SimpleTest bugs={bugs} onUpdate={updateBug} onDelete={deleteBug} isAdmin={isAdmin} />}
         
         <BugForm onAdd={addBug} />
         

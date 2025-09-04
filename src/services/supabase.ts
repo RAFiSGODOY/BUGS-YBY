@@ -188,7 +188,11 @@ class SupabaseService {
     console.log('🔄 Atualizando bug no Supabase:', { 
       originalId: bug.id, 
       numericId, 
-      updates: { title: bug.title, isFixed: bug.isFixed } 
+      updates: { 
+        title: bug.title, 
+        isFixed: bug.isFixed,
+        fixedAt: bug.fixedAt 
+      } 
     });
 
     const endpoint = `${SUPABASE_CONFIG.URL}/rest/v1/${SUPABASE_CONFIG.TABLE_NAME}?id=eq.${numericId}`;
@@ -206,9 +210,23 @@ class SupabaseService {
       original_id: bug.id, // Salvar o UUID original
     };
 
+    console.log('📤 Dados sendo enviados para Supabase:', {
+      endpoint,
+      bugData,
+      isFixed: bug.isFixed,
+      fixedAt: bug.fixedAt,
+      fixed_at_string: bug.fixedAt?.toISOString()
+    });
+
     const response = await this.makeRequest<Bug[]>(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(bugData),
+    });
+
+    console.log('📥 Resposta do Supabase:', {
+      success: response.success,
+      data: response.data,
+      error: response.error
     });
 
     if (response.success && response.data && response.data.length > 0) {

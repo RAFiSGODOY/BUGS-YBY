@@ -9,6 +9,7 @@ export function useBugsSupabase() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastLocalUpdate, setLastLocalUpdate] = useState<Date | null>(null);
 
   // Monitorar status de conexão
   useEffect(() => {
@@ -47,7 +48,7 @@ export function useBugsSupabase() {
       clearInterval(realtimeInterval);
       console.log('⏹️ Sincronização em tempo real desativada');
     };
-  }, [isOnline]);
+  }, [isOnline, lastLocalUpdate]);
 
   const loadFromLocalStorage = () => {
     try {
@@ -111,6 +112,12 @@ export function useBugsSupabase() {
   const syncFromCloud = async () => {
     if (!isOnline || isSyncing) return;
 
+    // Não sincronizar se houve mudanças locais recentes (últimos 5 segundos)
+    if (lastLocalUpdate && (Date.now() - lastLocalUpdate.getTime()) < 5000) {
+      console.log('⏸️ Pulando sincronização - mudanças locais recentes');
+      return;
+    }
+
     try {
       const response = await supabaseService.getBugs();
       if (response.success && response.data) {
@@ -145,28 +152,23 @@ export function useBugsSupabase() {
     
     for (const cloudBug of cloudBugs) {
       const localBug = localBugs.find(b => b.id === cloudBug.id);
-      if (!localBug || 
-          localBug.isFixed !== cloudBug.isFixed ||
-          localBug.title !== cloudBug.title ||
-          localBug.description !== cloudBug.description) {
-        return true;
-      }
+      if (!localBug) return true;
     }
+    
     return false;
   };
 
   const mergeBugs = (localBugs: Bug[], cloudBugs: Bug[]): Bug[] => {
     const merged = new Map<string, Bug>();
 
-    // Adicionar bugs locais
+    // Adicionar bugs locais primeiro (prioridade absoluta)
     localBugs.forEach(bug => {
       merged.set(bug.id, bug);
     });
 
-    // Adicionar/atualizar com bugs da nuvem
+    // Adicionar bugs da nuvem apenas se não existir localmente
     cloudBugs.forEach(cloudBug => {
-      const localBug = merged.get(cloudBug.id);
-      if (!localBug || cloudBug.createdAt > localBug.createdAt) {
+      if (!merged.has(cloudBug.id)) {
         merged.set(cloudBug.id, cloudBug);
       }
     });
@@ -187,6 +189,7 @@ export function useBugsSupabase() {
     setBugs(prev => {
       const updated = [newBug, ...prev];
       saveToLocalStorage(updated);
+      setLastLocalUpdate(new Date()); // Marcar que houve mudança local
       return updated;
     });
 
@@ -208,16 +211,48 @@ export function useBugsSupabase() {
 
   const updateBug = useCallback(async (id: string, updates: Partial<Bug>) => {
     console.log('🔄 Iniciando atualização do bug:', { id, updates });
+    
+    // Log específico para marcação como concluído
+    if (updates.isFixed !== undefined) {
+      console.log('✅ Marcando bug como concluído:', { id, isFixed: updates.isFixed });
+    }
+    
+    // Encontrar o bug atual para comparação
+    const currentBug = bugs.find(b => b.id === id);
+    if (currentBug) {
+      console.log('📋 Bug atual encontrado:', { 
+        id: currentBug.id, 
+        title: currentBug.title, 
+        isFixed: currentBug.isFixed,
+        fixedAt: currentBug.fixedAt 
+      });
+    } else {
+      console.error('❌ Bug não encontrado para atualização:', { id });
+      return;
+    }
+    
     let updatedBug: Bug | null = null;
 
     // Atualizar localmente primeiro
     setBugs(prev => {
       const updated = prev.map(bug => {
         if (bug.id === id) {
+          // Lógica melhorada para fixedAt
+          let fixedAt = bug.fixedAt;
+          if (updates.isFixed === true && !bug.isFixed) {
+            // Marcando como concluído pela primeira vez
+            fixedAt = new Date();
+            console.log('🎯 Bug marcado como concluído pela primeira vez:', fixedAt);
+          } else if (updates.isFixed === false && bug.isFixed) {
+            // Desmarcando como concluído
+            fixedAt = undefined;
+            console.log('🔄 Bug desmarcado como concluído');
+          }
+          
           updatedBug = { 
             ...bug, 
             ...updates,
-            fixedAt: updates.isFixed ? new Date() : bug.fixedAt
+            fixedAt
           };
           console.log('📝 Bug atualizado localmente:', updatedBug);
           return updatedBug;
@@ -225,6 +260,7 @@ export function useBugsSupabase() {
         return bug;
       });
       saveToLocalStorage(updated);
+      setLastLocalUpdate(new Date()); // Marcar que houve mudança local
       return updated;
     });
 
@@ -245,16 +281,35 @@ export function useBugsSupabase() {
     } else {
       console.log('⏸️ Sincronização offline ou bug não encontrado');
     }
-  }, [isOnline]);
+  }, [isOnline, bugs]);
 
   const deleteBug = useCallback(async (id: string) => {
     console.log('🗑️ Iniciando exclusão do bug:', { id });
     
+    // Encontrar o bug que será excluído
+    const bugToDelete = bugs.find(b => b.id === id);
+    if (bugToDelete) {
+      console.log('📋 Bug a ser excluído encontrado:', { 
+        id: bugToDelete.id, 
+        title: bugToDelete.title, 
+        isFixed: bugToDelete.isFixed 
+      });
+    } else {
+      console.error('❌ Bug não encontrado para exclusão:', { id });
+      return;
+    }
+    
     // Remover localmente primeiro
     setBugs(prev => {
       const updated = prev.filter(bug => bug.id !== id);
-      console.log('📝 Bug removido localmente:', { id, remainingBugs: updated.length });
+      console.log('📝 Bug removido localmente:', { 
+        id, 
+        title: bugToDelete?.title,
+        remainingBugs: updated.length,
+        previousCount: prev.length 
+      });
       saveToLocalStorage(updated);
+      setLastLocalUpdate(new Date()); // Marcar que houve mudança local
       return updated;
     });
 
@@ -275,7 +330,7 @@ export function useBugsSupabase() {
     } else {
       console.log('⏸️ Sincronização offline');
     }
-  }, [isOnline]);
+  }, [isOnline, bugs]);
 
   const filteredBugs = bugs.filter(bug => 
     activeFilter === 'todos' || bug.category === activeFilter
