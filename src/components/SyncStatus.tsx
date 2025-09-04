@@ -5,9 +5,10 @@ interface SyncStatusProps {
   lastSync: Date | null;
   isSyncing: boolean;
   onSync: () => void;
+  isAdmin?: boolean;
 }
 
-export function SyncStatus({ isOnline, lastSync, isSyncing, onSync }: SyncStatusProps) {
+export function SyncStatus({ isOnline, lastSync, isSyncing, onSync, isAdmin = false }: SyncStatusProps) {
   const getStatusColor = () => {
     if (!isOnline) return 'text-red-600';
     if (isSyncing) return 'text-blue-600';
@@ -41,7 +42,7 @@ export function SyncStatus({ isOnline, lastSync, isSyncing, onSync }: SyncStatus
         <span>{getStatusText()}</span>
       </div>
       
-      {isOnline && !isSyncing && (
+      {isOnline && !isSyncing && isAdmin && (
         <button
           onClick={onSync}
           className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"

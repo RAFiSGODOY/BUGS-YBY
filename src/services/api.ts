@@ -50,7 +50,7 @@ class ApiService {
 
   // Criar um novo bin (primeira vez)
   async createBin(data: any): Promise<ApiResponse<{ id: string }>> {
-    const response = await this.makeRequest<{ id: string }>(
+    const response = await this.makeRequest<any>(
       API_CONFIG.BASE_URL,
       {
         method: 'POST',
@@ -59,12 +59,21 @@ class ApiService {
     );
 
     if (response.success && response.data) {
-      BIN_ID = response.data.id;
-      // Salvar o ID no localStorage para uso futuro
-      localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
+      // JSONBin.io retorna { record: {...}, metadata: { id: "..." } }
+      const binId = response.data.metadata?.id || response.data.id;
+      if (binId) {
+        BIN_ID = binId;
+        // Salvar o ID no localStorage para uso futuro
+        localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
+        console.log('✅ Bin criado com ID:', BIN_ID);
+      }
     }
 
-    return response;
+    return {
+      success: response.success,
+      data: response.data?.metadata ? { id: response.data.metadata.id } : response.data,
+      error: response.error
+    };
   }
 
   // Atualizar dados existentes
@@ -99,7 +108,18 @@ class ApiService {
       return { success: false, error: 'Bin ID não encontrado' };
     }
 
-    return this.makeRequest(`${API_CONFIG.BASE_URL}/${BIN_ID}/latest`);
+    const response = await this.makeRequest(`${API_CONFIG.BASE_URL}/${BIN_ID}/latest`);
+    
+    if (response.success && response.data) {
+      // JSONBin.io retorna { record: {...}, metadata: {...} }
+      return {
+        success: true,
+        data: response.data.record || response.data,
+        error: response.error
+      };
+    }
+
+    return response;
   }
 
   // Definir ID do bin manualmente (para sincronização)

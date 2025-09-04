@@ -10,9 +10,10 @@ interface HeaderProps {
   lastSync?: Date | null;
   isSyncing?: boolean;
   onSync?: () => void;
+  isAdmin?: boolean;
 }
 
-export function Header({ totalBugs, fixedBugs, isOnline, lastSync, isSyncing, onSync }: HeaderProps) {
+export function Header({ totalBugs, fixedBugs, isOnline, lastSync, isSyncing, onSync, isAdmin }: HeaderProps) {
   const { user, logout } = useAuth();
   const progressPercentage = totalBugs > 0 ? (fixedBugs / totalBugs) * 100 : 0;
 
@@ -75,6 +76,7 @@ export function Header({ totalBugs, fixedBugs, isOnline, lastSync, isSyncing, on
             lastSync={lastSync}
             isSyncing={isSyncing || false}
             onSync={onSync || (() => {})}
+            isAdmin={isAdmin}
           />
         </div>
       )}

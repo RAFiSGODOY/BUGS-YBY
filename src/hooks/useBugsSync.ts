@@ -72,14 +72,18 @@ export function useBugsSync() {
   };
 
   const syncToCloud = async () => {
-    if (!isOnline || isSyncing) return;
+    if (!isOnline || isSyncing) {
+      console.log('⏸️ Sincronização pausada:', { isOnline, isSyncing });
+      return;
+    }
 
+    console.log('🔄 Iniciando sincronização para a nuvem...', { bugsCount: bugs.length });
     setIsSyncing(true);
     try {
       const response = await apiService.updateBin(bugs);
       if (response.success) {
         setLastSync(new Date());
-        console.log('✅ Bugs sincronizados para a nuvem');
+        console.log('✅ Bugs sincronizados para a nuvem:', response.data);
       } else {
         console.error('❌ Erro ao sincronizar para a nuvem:', response.error);
       }
@@ -91,8 +95,12 @@ export function useBugsSync() {
   };
 
   const syncFromCloud = async () => {
-    if (!isOnline || isSyncing) return;
+    if (!isOnline || isSyncing) {
+      console.log('⏸️ Sincronização da nuvem pausada:', { isOnline, isSyncing });
+      return;
+    }
 
+    console.log('🔄 Iniciando sincronização da nuvem...');
     setIsSyncing(true);
     try {
       const response = await apiService.getBin();
@@ -108,7 +116,13 @@ export function useBugsSync() {
         setBugs(mergedBugs);
         saveToLocalStorage(mergedBugs);
         setLastSync(new Date());
-        console.log('✅ Bugs sincronizados da nuvem');
+        console.log('✅ Bugs sincronizados da nuvem:', { 
+          localBugs: bugs.length, 
+          cloudBugs: cloudBugs.length, 
+          mergedBugs: mergedBugs.length 
+        });
+      } else {
+        console.log('ℹ️ Nenhum dado na nuvem ou erro:', response.error);
       }
     } catch (error) {
       console.error('❌ Erro ao sincronizar da nuvem:', error);
@@ -143,13 +157,17 @@ export function useBugsSync() {
       createdAt: new Date()
     };
 
+    console.log('➕ Adicionando novo bug:', newBug);
     const updatedBugs = [newBug, ...bugs];
     setBugs(updatedBugs);
     saveToLocalStorage(updatedBugs);
 
     // Sincronizar imediatamente se online
     if (isOnline) {
+      console.log('🔄 Agendando sincronização após adicionar bug...');
       setTimeout(() => syncToCloud(), 1000);
+    } else {
+      console.log('📱 Offline - bug salvo localmente');
     }
   }, [bugs, isOnline]);
 

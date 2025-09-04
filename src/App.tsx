@@ -1,10 +1,10 @@
-import React from 'react';
 import { Header } from './components/Header';
 import { BugForm } from './components/BugForm';
 import { FilterTabs } from './components/FilterTabs';
 import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
 import { SetupInstructions } from './components/SetupInstructions';
+import { ApiTest } from './components/ApiTest';
 import { useBugsSync } from './hooks/useBugsSync';
 import { useAuth, AuthProvider } from './hooks/useAuth';
 import { API_CONFIG } from './config/api';
@@ -25,7 +25,7 @@ function AppContent() {
     syncFromCloud
   } = useBugsSync();
 
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -43,6 +43,7 @@ function AppContent() {
   }
 
   const isApiKeyConfigured = API_CONFIG.API_KEY !== 'YOUR_API_KEY_HERE';
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -54,9 +55,12 @@ function AppContent() {
           lastSync={lastSync}
           isSyncing={isSyncing}
           onSync={syncFromCloud}
+          isAdmin={isAdmin}
         />
         
-        {!isApiKeyConfigured && <SetupInstructions />}
+        {!isApiKeyConfigured && isAdmin && <SetupInstructions />}
+        
+        {isApiKeyConfigured && isAdmin && <ApiTest onForceSync={syncToCloud} />}
         
         <BugForm onAdd={addBug} />
         
