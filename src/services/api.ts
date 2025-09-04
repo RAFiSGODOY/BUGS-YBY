@@ -24,20 +24,35 @@ class ApiService {
     }
 
     try {
+      console.log('🔗 Fazendo requisição para:', endpoint);
+      console.log('📋 Headers:', {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_CONFIG.API_KEY ? '***configurada***' : 'NÃO CONFIGURADA',
+        'X-Bin-Name': 'Bugs YBY',
+      });
+      console.log('📦 Body:', options.body);
+
       const response = await fetch(endpoint, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
           'X-Master-Key': API_CONFIG.API_KEY,
+          'X-Bin-Name': 'Bugs YBY',
           ...options.headers,
         },
       });
 
+      console.log('📊 Response status:', response.status);
+      console.log('📊 Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('✅ Response data:', data);
       return { success: true, data };
     } catch (error) {
       console.error('API Error:', error);
@@ -50,11 +65,17 @@ class ApiService {
 
   // Criar um novo bin (primeira vez)
   async createBin(data: any): Promise<ApiResponse<{ id: string }>> {
+    // Garantir que os dados são válidos
+    const validData = Array.isArray(data) ? data : [];
+    
     const response = await this.makeRequest<any>(
-      API_CONFIG.BASE_URL,
+      'https://api.jsonbin.io/v3/b',
       {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(validData),
+        headers: {
+          'Content-Type': 'application/json',
+        }
       }
     );
 
@@ -100,11 +121,18 @@ class ApiService {
 
     BIN_ID = fixedBinId;
     localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
+    
+    // Garantir que os dados são válidos
+    const validData = Array.isArray(data) ? data : [];
+    
     return this.makeRequest(
       `${API_CONFIG.BASE_URL}/${BIN_ID}`,
       {
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: JSON.stringify(validData),
+        headers: {
+          'Content-Type': 'application/json',
+        }
       }
     );
   }

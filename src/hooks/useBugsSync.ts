@@ -77,10 +77,13 @@ export function useBugsSync() {
       return;
     }
 
-    console.log('🔄 Iniciando sincronização para a nuvem...', { bugsCount: bugs.length });
+    // Garantir que temos dados válidos para enviar
+    const bugsToSync = Array.isArray(bugs) ? bugs : [];
+    
+    console.log('🔄 Iniciando sincronização para a nuvem...', { bugsCount: bugsToSync.length });
     setIsSyncing(true);
     try {
-      const response = await apiService.updateBin(bugs);
+      const response = await apiService.updateBin(bugsToSync);
       if (response.success) {
         setLastSync(new Date());
         console.log('✅ Bugs sincronizados para a nuvem:', response.data);
@@ -105,7 +108,9 @@ export function useBugsSync() {
     try {
       const response = await apiService.getBin();
       if (response.success && response.data) {
-        const cloudBugs = response.data.map((bug: any) => ({
+        // Verificar se response.data é um array
+        const dataArray = Array.isArray(response.data) ? response.data : [];
+        const cloudBugs = dataArray.map((bug: any) => ({
           ...bug,
           createdAt: new Date(bug.createdAt),
           fixedAt: bug.fixedAt ? new Date(bug.fixedAt) : undefined
