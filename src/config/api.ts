@@ -14,6 +14,9 @@ export const API_CONFIG = {
   // Bin ID fixo para todos os usuários (será criado automaticamente)
   SHARED_BIN_ID: 'yby-bugs-shared', // Nome do bin compartilhado
   
+  // Código de convite fixo para todos (não precisa compartilhar)
+  FIXED_INVITE_CODE: '123456', // Código que todos usam automaticamente
+  
   // Intervalo de sincronização automática (em milissegundos)
   SYNC_INTERVAL: 30000, // 30 segundos
   

@@ -83,22 +83,23 @@ class ApiService {
 
   // Atualizar dados existentes
   async updateBin(data: any): Promise<ApiResponse<any>> {
-    // Verificar se já temos um Bin ID real
-    let binId = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
+    // Usar sempre o Bin ID fixo baseado no código de convite
+    const fixedBinId = this.getFixedBinId();
     
-    if (!binId || binId === API_CONFIG.SHARED_BIN_ID) {
-      // Se não temos um Bin ID real, criar um novo
+    if (!fixedBinId) {
+      // Se não temos um Bin ID fixo, criar um novo
       const createResponse = await this.createBin(data);
       if (createResponse.success) {
         BIN_ID = createResponse.data.id;
         localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
-        console.log('✅ Bin ID criado automaticamente:', BIN_ID);
+        console.log('✅ Bin ID fixo criado automaticamente:', BIN_ID);
         return createResponse;
       }
       return createResponse;
     }
 
-    BIN_ID = binId;
+    BIN_ID = fixedBinId;
+    localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
     return this.makeRequest(
       `${API_CONFIG.BASE_URL}/${BIN_ID}`,
       {
@@ -110,15 +111,16 @@ class ApiService {
 
   // Buscar dados
   async getBin(): Promise<ApiResponse<any>> {
-    // Verificar se já temos um Bin ID real
-    let binId = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
+    // Usar sempre o Bin ID fixo baseado no código de convite
+    const fixedBinId = this.getFixedBinId();
     
-    if (!binId || binId === API_CONFIG.SHARED_BIN_ID) {
-      // Se não temos um Bin ID real, retornar erro para criar um novo
-      return { success: false, error: 'Bin ID não encontrado. Criando novo...' };
+    if (!fixedBinId) {
+      // Se não temos um Bin ID fixo, retornar erro para criar um novo
+      return { success: false, error: 'Bin ID fixo não encontrado. Criando novo...' };
     }
 
-    BIN_ID = binId;
+    BIN_ID = fixedBinId;
+    localStorage.setItem(API_CONFIG.BIN_ID_KEY, BIN_ID);
     const response = await this.makeRequest(`${API_CONFIG.BASE_URL}/${BIN_ID}/latest`);
     
     if (response.success && response.data) {
@@ -131,6 +133,18 @@ class ApiService {
     }
 
     return response;
+  }
+
+  // Obter Bin ID fixo baseado no código de convite
+  private getFixedBinId(): string | null {
+    // Verificar se já temos um Bin ID salvo para o código fixo
+    const storedBinId = localStorage.getItem(API_CONFIG.BIN_ID_KEY);
+    if (storedBinId && storedBinId !== API_CONFIG.SHARED_BIN_ID) {
+      return storedBinId;
+    }
+    
+    // Se não temos, retornar null para criar um novo
+    return null;
   }
 
   // Definir ID do bin manualmente (para sincronização)
