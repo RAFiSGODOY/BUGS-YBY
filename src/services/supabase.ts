@@ -105,7 +105,7 @@ class SupabaseService {
 
       // Converter timestamps para Date objects e mapear campos
       const bugs = response.data.map((bug: any) => ({
-        id: bug.id,
+        id: bug.original_id || bug.id, // Usar original_id se disponível, senão o ID numérico
         title: bug.title,
         description: bug.description,
         category: bug.category,
@@ -158,7 +158,7 @@ class SupabaseService {
     if (response.success && response.data) {
       // Converter de volta para o formato Bug
       const createdBug = {
-        id: response.data.id,
+        id: response.data.original_id || bug.id, // Usar original_id se disponível, senão o ID original
         title: response.data.title,
         description: response.data.description,
         category: response.data.category,
@@ -185,6 +185,12 @@ class SupabaseService {
       return a & a;
     }, 0));
 
+    console.log('🔄 Atualizando bug no Supabase:', { 
+      originalId: bug.id, 
+      numericId, 
+      updates: { title: bug.title, isFixed: bug.isFixed } 
+    });
+
     const endpoint = `${SUPABASE_CONFIG.URL}/rest/v1/${SUPABASE_CONFIG.TABLE_NAME}?id=eq.${numericId}`;
     
     const bugData = {
@@ -207,7 +213,7 @@ class SupabaseService {
 
     if (response.success && response.data && response.data.length > 0) {
       const updatedBug = {
-        id: response.data[0].id,
+        id: response.data[0].original_id || bug.id, // Usar original_id se disponível, senão o ID original
         title: response.data[0].title,
         description: response.data[0].description,
         category: response.data[0].category,
@@ -233,6 +239,11 @@ class SupabaseService {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0));
+
+    console.log('🗑️ Deletando bug no Supabase:', { 
+      originalId: bugId, 
+      numericId 
+    });
 
     const endpoint = `${SUPABASE_CONFIG.URL}/rest/v1/${SUPABASE_CONFIG.TABLE_NAME}?id=eq.${numericId}`;
     

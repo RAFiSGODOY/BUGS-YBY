@@ -3,9 +3,7 @@ import { BugForm } from './components/BugForm';
 import { FilterTabs } from './components/FilterTabs';
 import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
-import { SupabaseTest } from './components/SupabaseTest';
 import { SupabaseSetup } from './components/SupabaseSetup';
-import { ConnectionTest } from './components/ConnectionTest';
 import { useBugsSupabase } from './hooks/useBugsSupabase';
 import { useAuth, AuthProvider } from './hooks/useAuth';
 import { SUPABASE_CONFIG } from './config/supabase';
@@ -20,9 +18,7 @@ function AppContent() {
     deleteBug,
     isOnline,
     lastSync,
-    isSyncing,
-    syncToCloud,
-    syncFromCloud
+    isSyncing
   } = useBugsSupabase();
 
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -64,20 +60,11 @@ function AppContent() {
           isOnline={isOnline}
           lastSync={lastSync}
           isSyncing={isSyncing}
-          onSync={syncFromCloud}
           isAdmin={isAdmin}
         />
         
         {!isSupabaseConfigured && isAdmin && <SupabaseSetup />}
 
-        {isSupabaseConfigured && isAdmin && (
-          <>
-            <ConnectionTest />
-            <SupabaseTest 
-              onForceSync={syncToCloud} 
-            />
-          </>
-        )}
         
         <BugForm onAdd={addBug} />
         

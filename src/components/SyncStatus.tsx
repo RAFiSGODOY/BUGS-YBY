@@ -1,14 +1,13 @@
-import { Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle, Wifi } from 'lucide-react';
 
 interface SyncStatusProps {
   isOnline: boolean;
   lastSync: Date | null;
   isSyncing: boolean;
-  onSync: () => void;
   isAdmin?: boolean;
 }
 
-export function SyncStatus({ isOnline, lastSync, isSyncing, onSync, isAdmin = false }: SyncStatusProps) {
+export function SyncStatus({ isOnline, lastSync, isSyncing, isAdmin = false }: SyncStatusProps) {
   const getStatusColor = () => {
     if (!isOnline) return 'text-red-600';
     if (isSyncing) return 'text-blue-600';
@@ -19,7 +18,7 @@ export function SyncStatus({ isOnline, lastSync, isSyncing, onSync, isAdmin = fa
   const getStatusIcon = () => {
     if (!isOnline) return <CloudOff className="h-4 w-4" />;
     if (isSyncing) return <RefreshCw className="h-4 w-4 animate-spin" />;
-    if (lastSync) return <CheckCircle className="h-4 w-4" />;
+    if (lastSync) return <Wifi className="h-4 w-4" />;
     return <Cloud className="h-4 w-4" />;
   };
 
@@ -27,12 +26,14 @@ export function SyncStatus({ isOnline, lastSync, isSyncing, onSync, isAdmin = fa
     if (!isOnline) return 'Offline';
     if (isSyncing) return 'Sincronizando...';
     if (lastSync) {
-      const minutesAgo = Math.floor((Date.now() - lastSync.getTime()) / 60000);
-      if (minutesAgo < 1) return 'Sincronizado agora';
+      const secondsAgo = Math.floor((Date.now() - lastSync.getTime()) / 1000);
+      if (secondsAgo < 5) return 'Tempo real ativo';
+      if (secondsAgo < 60) return `Sincronizado há ${secondsAgo}s`;
+      const minutesAgo = Math.floor(secondsAgo / 60);
       if (minutesAgo === 1) return 'Sincronizado há 1 min';
       return `Sincronizado há ${minutesAgo} min`;
     }
-    return 'Configurar API Key para sincronizar';
+    return 'Configurando sincronização...';
   };
 
   return (
@@ -42,14 +43,11 @@ export function SyncStatus({ isOnline, lastSync, isSyncing, onSync, isAdmin = fa
         <span>{getStatusText()}</span>
       </div>
       
-      {isOnline && !isSyncing && isAdmin && (
-        <button
-          onClick={onSync}
-          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
-          title="Sincronizar agora"
-        >
-          <RefreshCw className="h-3 w-3" />
-        </button>
+      {isOnline && lastSync && (
+        <div className="flex items-center gap-1 text-green-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs">Tempo real</span>
+        </div>
       )}
 
       {!isOnline && (
