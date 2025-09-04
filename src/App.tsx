@@ -3,13 +3,11 @@ import { BugForm } from './components/BugForm';
 import { FilterTabs } from './components/FilterTabs';
 import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
-import { SetupInstructions } from './components/SetupInstructions';
-import { ApiTest } from './components/ApiTest';
-import { SharedBinInfo } from './components/SharedBinInfo';
-import { ConnectToSharedBin } from './components/ConnectToSharedBin';
-import { useBugsSync } from './hooks/useBugsSync';
+import { SupabaseTest } from './components/SupabaseTest';
+import { SupabaseSetup } from './components/SupabaseSetup';
+import { useBugsSupabase } from './hooks/useBugsSupabase';
 import { useAuth, AuthProvider } from './hooks/useAuth';
-import { API_CONFIG } from './config/api';
+import { SUPABASE_CONFIG } from './config/supabase';
 
 function AppContent() {
   const {
@@ -19,13 +17,12 @@ function AppContent() {
     addBug,
     updateBug,
     deleteBug,
-    stats,
     isOnline,
     lastSync,
     isSyncing,
     syncToCloud,
     syncFromCloud
-  } = useBugsSync();
+  } = useBugsSupabase();
 
   const { isAuthenticated, isLoading, user } = useAuth();
 
@@ -44,8 +41,18 @@ function AppContent() {
     return <LoginForm />;
   }
 
-  const isApiKeyConfigured = API_CONFIG.API_KEY !== 'YOUR_API_KEY_HERE';
+  const isSupabaseConfigured = SUPABASE_CONFIG.URL !== 'https://your-project.supabase.co' && SUPABASE_CONFIG.ANON_KEY !== 'your-anon-key-here';
   const isAdmin = user?.role === 'admin';
+
+  // Calcular stats localmente (total, fixed, por categoria)
+  const stats = {
+    total: bugs.length,
+    fixed: bugs.filter(b => b.isFixed).length,
+    byCategory: bugs.reduce((acc: Record<string, number>, bug) => {
+      acc[bug.category] = (acc[bug.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -60,17 +67,10 @@ function AppContent() {
           isAdmin={isAdmin}
         />
         
-        {!isApiKeyConfigured && isAdmin && <SetupInstructions />}
-        
-        {isApiKeyConfigured && isAdmin && (
-          <>
-            <SharedBinInfo />
-            <ApiTest onForceSync={syncToCloud} />
-          </>
-        )}
-        
-        {isApiKeyConfigured && !isAdmin && (
-          <ConnectToSharedBin onConnect={() => window.location.reload()} />
+        {!isSupabaseConfigured && isAdmin && <SupabaseSetup />}
+
+        {isSupabaseConfigured && isAdmin && (
+          <SupabaseTest onForceSync={syncToCloud} />
         )}
         
         <BugForm onAdd={addBug} />
