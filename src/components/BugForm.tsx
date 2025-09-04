@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { BugCategory, Priority, BUG_CATEGORIES, PRIORITIES } from '../types/Bug';
+import { BugCategory, Priority, BUG_CATEGORIES, PRIORITIES, Platform, PLATFORMS } from '../types/Bug';
+import { ScreenshotCapture } from './ScreenshotCapture';
+import { getDeviceInfo, detectPlatform } from '../utils/platform';
 
 interface BugFormProps {
   onAdd: (bug: {
@@ -9,6 +11,9 @@ interface BugFormProps {
     category: BugCategory;
     priority: Priority;
     isFixed: boolean;
+    screenshot?: string;
+    platform?: Platform;
+    deviceInfo?: string;
   }) => void;
 }
 
@@ -18,6 +23,9 @@ export function BugForm({ onAdd }: BugFormProps) {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<BugCategory>('interface');
   const [priority, setPriority] = useState<Priority>('media');
+  const [screenshot, setScreenshot] = useState<string>('');
+  const [platform, setPlatform] = useState<Platform>(detectPlatform());
+  const [deviceInfo] = useState<string>(getDeviceInfo());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,13 +36,18 @@ export function BugForm({ onAdd }: BugFormProps) {
       description: description.trim(),
       category,
       priority,
-      isFixed: false
+      isFixed: false,
+      screenshot: screenshot || undefined,
+      platform,
+      deviceInfo
     });
 
     setTitle('');
     setDescription('');
     setCategory('interface');
     setPriority('media');
+    setScreenshot('');
+    setPlatform(detectPlatform());
     setIsOpen(false);
   };
 
@@ -94,7 +107,7 @@ export function BugForm({ onAdd }: BugFormProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
               Categoria
@@ -126,7 +139,34 @@ export function BugForm({ onAdd }: BugFormProps) {
               ))}
             </select>
           </div>
+
+          <div>
+            <label htmlFor="platform" className="block text-sm font-medium text-gray-700 mb-2">
+              Plataforma
+              <span className="text-xs text-gray-500 ml-1">(detectada automaticamente)</span>
+            </label>
+            <select
+              id="platform"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value as Platform)}
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              {Object.entries(PLATFORMS).map(([key, { label, icon }]) => (
+                <option key={key} value={key}>{icon} {label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Você pode alterar se necessário
+            </p>
+          </div>
         </div>
+
+
+        {/* Captura de Screenshot */}
+        <ScreenshotCapture
+          onScreenshot={setScreenshot}
+          currentScreenshot={screenshot}
+        />
 
         <div className="flex gap-3 pt-2">
           <button

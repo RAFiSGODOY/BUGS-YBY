@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Check, Edit2, Trash2, Calendar, Flag, Lock } from 'lucide-react';
-import { Bug, BUG_CATEGORIES, PRIORITIES } from '../types/Bug';
+import { Check, Edit2, Trash2, Calendar, Flag, Lock, Eye, Download } from 'lucide-react';
+import { Bug, BUG_CATEGORIES, PRIORITIES, PLATFORMS } from '../types/Bug';
 import { useAuth } from '../hooks/useAuth';
 
 interface BugCardProps {
@@ -13,6 +13,7 @@ export function BugCard({ bug, onUpdate, onDelete }: BugCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(bug.title);
   const [editDescription, setEditDescription] = useState(bug.description);
+  const [showScreenshot, setShowScreenshot] = useState(false);
   const { user } = useAuth();
   
   const isAdmin = user?.role === 'admin';
@@ -55,7 +56,7 @@ export function BugCard({ bug, onUpdate, onDelete }: BugCardProps) {
               {bug.isFixed ? <Check className="h-4 w-4" /> : !isAdmin && <Lock className="h-3 w-3" />}
             </button>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                 bug.category === 'interface' ? 'bg-blue-100 text-blue-800' :
                 bug.category === 'ux' ? 'bg-purple-100 text-purple-800' :
@@ -71,6 +72,12 @@ export function BugCard({ bug, onUpdate, onDelete }: BugCardProps) {
                 <Flag className="h-3 w-3" />
                 {PRIORITIES[bug.priority].label}
               </span>
+
+              {bug.platform && (
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${PLATFORMS[bug.platform].color}`}>
+                  {PLATFORMS[bug.platform].icon} {PLATFORMS[bug.platform].label}
+                </span>
+              )}
             </div>
           </div>
 
@@ -132,6 +139,40 @@ export function BugCard({ bug, onUpdate, onDelete }: BugCardProps) {
               <p className={`text-gray-600 mb-3 ${bug.isFixed ? 'line-through' : ''}`}>
                 {bug.description}
               </p>
+            )}
+
+            {/* Screenshot */}
+            {bug.screenshot && (
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-gray-700">📸 Screenshot:</span>
+                  <button
+                    onClick={() => setShowScreenshot(!showScreenshot)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors duration-200"
+                  >
+                    <Eye className="h-3 w-3" />
+                    {showScreenshot ? 'Ocultar' : 'Ver'}
+                  </button>
+                  <a
+                    href={bug.screenshot}
+                    download="bug-screenshot.png"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors duration-200"
+                  >
+                    <Download className="h-3 w-3" />
+                    Baixar
+                  </a>
+                </div>
+                
+                {showScreenshot && (
+                  <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                    <img
+                      src={bug.screenshot}
+                      alt="Screenshot do bug"
+                      className="max-w-full h-auto max-h-48 rounded shadow-sm"
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
