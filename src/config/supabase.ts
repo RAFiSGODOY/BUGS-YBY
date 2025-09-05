@@ -16,7 +16,7 @@ export const SUPABASE_CONFIG = {
   TABLE_NAME: 'bugs',
   
   // Intervalo de sincronização automática (em milissegundos)
-  SYNC_INTERVAL: 30000, // 30 segundos
+  SYNC_INTERVAL: 3000, // 30 segundos
 };
 
 // Instruções para configurar:
@@ -31,21 +31,43 @@ export const SUPABASE_SETUP_INSTRUCTIONS = `
 6. Vá em "Settings" > "API"
 7. Copie a "Project URL" e "anon public" key
 8. Substitua os valores em src/config/supabase.ts
-9. Vá em "Table Editor" e crie uma nova tabela:
-   - Nome: "bugs"
-   - Colunas:
-     * id (text, primary key)
-     * title (text)
+9. Vá em "Table Editor" e crie as tabelas:
+
+   TABELA "bugs":
+     * id (bigint, primary key, auto-increment)
+     * original_id (text, unique) - UUID original
+     * title (text, not null)
      * description (text)
-     * category (text)
-     * priority (text)
-     * status (text)
-     * created_at (timestamp)
-     * fixed_at (timestamp)
-     * screenshot (text)
-     * platform (text)
-     * device_info (text)
-     * user_id (text)
+     * category (text, not null)
+     * priority (text, not null)
+     * is_fixed (boolean, default false)
+     * created_at (timestamp, default now())
+     * fixed_at (timestamp, nullable)
+     * screenshot (text, nullable)
+     * platform (text, nullable)
+     * device_info (text, nullable)
+     * user_id (text, default 'shared')
+     * version (text, not null, default '1.0.0')
+     * created_by (text, not null)
+     * last_modified_by (text, nullable)
+     * last_modified_at (timestamp, nullable)
+
+   TABELA "users":
+     * id (text, primary key) - ID único do usuário
+     * name (text, not null) - Nome completo
+     * email (text, unique, nullable)
+     * role (text, not null, default 'user') - 'admin' ou 'user'
+     * is_active (boolean, default true)
+     * created_at (timestamp, default now())
+     * last_login (timestamp, nullable)
+
+   TABELA "app_versions":
+     * id (bigint, primary key, auto-increment)
+     * version (text, not null, unique)
+     * is_current (boolean, default false)
+     * created_by (text, not null)
+     * created_at (timestamp, default now())
+     * description (text, nullable)
 
 ✅ Após configurar, os dados serão sincronizados automaticamente!
 

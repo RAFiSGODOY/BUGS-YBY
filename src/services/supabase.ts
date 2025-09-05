@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_CONFIG } from '../config/supabase';
 import { Bug } from '../types/Bug';
 
@@ -8,6 +9,21 @@ export interface SupabaseResponse<T> {
 }
 
 class SupabaseService {
+  public client: any;
+
+  constructor() {
+    // Verificar se a configuração está completa
+    if (SUPABASE_CONFIG.URL === 'https://your-project.supabase.co' || 
+        SUPABASE_CONFIG.ANON_KEY === 'your-anon-key-here') {
+      console.warn('⚠️ Supabase não configurado. Cliente não será criado.');
+      return;
+    }
+
+    // Criar cliente Supabase
+    this.client = createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
+    console.log('✅ Cliente Supabase criado com sucesso!');
+  }
+
   private async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -116,6 +132,10 @@ class SupabaseService {
         screenshot: bug.screenshot,
         platform: bug.platform,
         deviceInfo: bug.device_info,
+        version: bug.version || '1.0.0', // Versão padrão se não existir
+        createdBy: bug.created_by || 'Usuário Desconhecido',
+        lastModifiedBy: bug.last_modified_by,
+        lastModifiedAt: bug.last_modified_at ? new Date(bug.last_modified_at) : undefined,
       }));
       
       return { success: true, data: bugs };
@@ -148,6 +168,10 @@ class SupabaseService {
       device_info: bug.deviceInfo || null,
       user_id: 'shared', // Todos usam o mesmo ID para compartilhar
       original_id: bug.id, // Salvar o UUID original
+      version: bug.version,
+      created_by: bug.createdBy,
+      last_modified_by: bug.lastModifiedBy || null,
+      last_modified_at: bug.lastModifiedAt?.toISOString() || null,
     };
 
     const response = await this.makeRequest<Bug>(endpoint, {
@@ -169,6 +193,10 @@ class SupabaseService {
         screenshot: response.data.screenshot,
         platform: response.data.platform,
         deviceInfo: response.data.device_info,
+        version: response.data.version,
+        createdBy: response.data.created_by,
+        lastModifiedBy: response.data.last_modified_by,
+        lastModifiedAt: response.data.last_modified_at ? new Date(response.data.last_modified_at) : undefined,
       };
       
       return { success: true, data: createdBug };
@@ -185,15 +213,6 @@ class SupabaseService {
       return a & a;
     }, 0));
 
-    console.log('🔄 Atualizando bug no Supabase:', { 
-      originalId: bug.id, 
-      numericId, 
-      updates: { 
-        title: bug.title, 
-        isFixed: bug.isFixed,
-        fixedAt: bug.fixedAt 
-      } 
-    });
 
     const endpoint = `${SUPABASE_CONFIG.URL}/rest/v1/${SUPABASE_CONFIG.TABLE_NAME}?id=eq.${numericId}`;
     
@@ -208,26 +227,18 @@ class SupabaseService {
       platform: bug.platform || null,
       device_info: bug.deviceInfo || null,
       original_id: bug.id, // Salvar o UUID original
+      version: bug.version,
+      created_by: bug.createdBy,
+      last_modified_by: bug.lastModifiedBy || null,
+      last_modified_at: bug.lastModifiedAt?.toISOString() || null,
     };
 
-    console.log('📤 Dados sendo enviados para Supabase:', {
-      endpoint,
-      bugData,
-      isFixed: bug.isFixed,
-      fixedAt: bug.fixedAt,
-      fixed_at_string: bug.fixedAt?.toISOString()
-    });
 
     const response = await this.makeRequest<Bug[]>(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(bugData),
     });
 
-    console.log('📥 Resposta do Supabase:', {
-      success: response.success,
-      data: response.data,
-      error: response.error
-    });
 
     if (response.success && response.data && response.data.length > 0) {
       const updatedBug = {
@@ -242,6 +253,10 @@ class SupabaseService {
         screenshot: response.data[0].screenshot,
         platform: response.data[0].platform,
         deviceInfo: response.data[0].device_info,
+        version: response.data[0].version,
+        createdBy: response.data[0].created_by,
+        lastModifiedBy: response.data[0].last_modified_by,
+        lastModifiedAt: response.data[0].last_modified_at ? new Date(response.data[0].last_modified_at) : undefined,
       };
       
       return { success: true, data: updatedBug };
@@ -308,6 +323,10 @@ class SupabaseService {
           device_info: bug.deviceInfo || null,
           user_id: 'shared',
           original_id: bug.id, // Salvar o UUID original
+          version: bug.version,
+          created_by: bug.createdBy,
+          last_modified_by: bug.lastModifiedBy || null,
+          last_modified_at: bug.lastModifiedAt?.toISOString() || null,
         };
 
         let response;
@@ -348,6 +367,10 @@ class SupabaseService {
               screenshot: syncedBug.screenshot,
               platform: syncedBug.platform,
               deviceInfo: syncedBug.device_info,
+              version: syncedBug.version,
+              createdBy: syncedBug.created_by,
+              lastModifiedBy: syncedBug.last_modified_by,
+              lastModifiedAt: syncedBug.last_modified_at ? new Date(syncedBug.last_modified_at) : undefined,
             });
           }
         } else {

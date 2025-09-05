@@ -3,6 +3,8 @@ export interface User {
   username: string;
   role: 'admin' | 'user';
   createdAt: Date;
+  name?: string;
+  email?: string;
 }
 
 export interface AuthState {

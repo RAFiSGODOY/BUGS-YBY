@@ -52,8 +52,8 @@ export function Header({ totalBugs, fixedBugs, isOnline, lastSync, isSyncing, is
                 <User className="h-5 w-5 text-blue-600" />
               )}
               <div className="text-right">
-                <div className="text-sm font-medium text-gray-900">{user?.username}</div>
-                <div className="text-xs text-gray-500 capitalize">{user?.role}</div>
+                <div className="text-sm font-medium text-gray-900">{user?.name || user?.username}</div>
+                <div className="text-xs text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</div>
               </div>
             </div>
             <button

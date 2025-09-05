@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { Lock, User, AlertCircle, Loader2 } from 'lucide-react';
+import { Lock, User, AlertCircle, Loader2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { PREDEFINED_USERS } from '../types/User';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showUserList, setShowUserList] = useState(false);
   
   const { login } = useAuth();
+
+  const selectedUser = PREDEFINED_USERS.find(u => u.id === username);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,22 +49,60 @@ export function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Usuário
+              Selecione o Usuário
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Digite seu usuário"
-                required
+              <button
+                type="button"
+                onClick={() => setShowUserList(!showUserList)}
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white"
                 disabled={isLoading}
-              />
+              >
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                </div>
+                {selectedUser ? (
+                  <div>
+                    <div className="font-medium text-gray-900">{selectedUser.name}</div>
+                    <div className="text-sm text-gray-500">@{selectedUser.id} • {selectedUser.role === 'admin' ? 'Administrador' : 'Usuário'}</div>
+                  </div>
+                ) : (
+                  <span className="text-gray-500">Selecione um usuário</span>
+                )}
+              </button>
+
+              {showUserList && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {PREDEFINED_USERS.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => {
+                        setUsername(user.id);
+                        setShowUserList(false);
+                        setError('');
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="font-medium text-gray-900">{user.name}</div>
+                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                        <span>@{user.id}</span>
+                        <span>•</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${
+                          user.role === 'admin' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {user.role === 'admin' ? 'Admin' : 'Usuário'}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -108,7 +150,16 @@ export function LoginForm() {
           </button>
         </form>
 
-       
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h3 className="font-medium text-gray-900 mb-2">Credenciais de Teste:</h3>
+          <div className="space-y-1 text-sm text-gray-600">
+            <div><strong>Admin:</strong> admin / admin123</div>
+            <div><strong>Usuários:</strong> [nome] / [nome]123</div>
+            <div className="text-xs text-gray-500 mt-2">
+              Ex: rafael / rafael123, maria / maria123, etc.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

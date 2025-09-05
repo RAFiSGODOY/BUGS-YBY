@@ -1,18 +1,20 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, AuthState, LoginCredentials, AuthContextType } from '../types/Auth';
+import { PREDEFINED_USERS } from '../types/User';
 
-// Configuração de usuários (em produção, isso viria de um servidor)
-const USERS_CONFIG = {
-  admin: {
-    username: 'admin',
-    password: 'admin123', // Em produção, use hash + salt
-    role: 'admin' as const
-  },
-  users: {
-    username: 'usuarios',
-    password: 'user123', // Em produção, use hash + salt
-    role: 'user' as const
-  }
+// Configuração de senhas (em produção, isso viria de um servidor com hash)
+const USER_PASSWORDS: Record<string, string> = {
+  admin: 'admin123',
+  rafael: 'rafael123',
+  maria: 'maria123',
+  joao: 'joao123',
+  ana: 'ana123',
+  pedro: 'pedro123',
+  carla: 'carla123',
+  lucas: 'lucas123',
+  julia: 'julia123',
+  bruno: 'bruno123',
+  fernanda: 'fernanda123'
 };
 
 const AUTH_STORAGE_KEY = 'yby-auth';
@@ -55,18 +57,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Simula delay de autenticação
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Verifica credenciais
-      const userConfig = Object.values(USERS_CONFIG).find(
-        config => config.username === credentials.username && 
-                  config.password === credentials.password
-      );
+      // Busca usuário pelo username
+      const userProfile = PREDEFINED_USERS.find(u => u.id === credentials.username);
+      const password = USER_PASSWORDS[credentials.username];
 
-      if (userConfig) {
+      if (userProfile && password === credentials.password) {
         const user: User = {
-          id: userConfig.username,
-          username: userConfig.username,
-          role: userConfig.role,
-          createdAt: new Date()
+          id: userProfile.id,
+          username: userProfile.id,
+          role: userProfile.role,
+          createdAt: new Date(),
+          name: userProfile.name,
+          email: userProfile.email
         };
 
         // Salva no localStorage

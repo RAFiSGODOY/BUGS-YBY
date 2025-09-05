@@ -4,10 +4,12 @@ import { FilterTabs } from './components/FilterTabs';
 import { BugList } from './components/BugList';
 import { LoginForm } from './components/LoginForm';
 import { SupabaseSetup } from './components/SupabaseSetup';
-import { SimpleTest } from './components/SimpleTest';
-import { CompletionTest } from './components/CompletionTest';
+import { RealtimeTest } from './components/RealtimeTest';
+import { VersionManager } from './components/VersionManager';
+import { UserManager } from './components/UserManager';
 import { useBugsSupabase } from './hooks/useBugsSupabase';
 import { useAuth, AuthProvider } from './hooks/useAuth';
+import { useUserSync } from './hooks/useUserSync';
 import { SUPABASE_CONFIG } from './config/supabase';
 
 function AppContent() {
@@ -24,6 +26,9 @@ function AppContent() {
   } = useBugsSupabase();
 
   const { isAuthenticated, isLoading, user } = useAuth();
+  
+  // Sincronizar usuários automaticamente
+  useUserSync();
 
   if (isLoading) {
     return (
@@ -67,8 +72,11 @@ function AppContent() {
         
         {!isSupabaseConfigured && isAdmin && <SupabaseSetup />}
 
-        {isAdmin && <SimpleTest bugs={bugs} onUpdate={updateBug} onDelete={deleteBug} isAdmin={isAdmin} />}
-        {isAdmin && <CompletionTest bugs={bugs} onUpdate={updateBug} isAdmin={isAdmin} />}
+        {isAdmin && <RealtimeTest bugs={bugs} isAdmin={isAdmin} />}
+        
+        <VersionManager />
+        
+        <UserManager />
         
         <BugForm onAdd={addBug} />
         

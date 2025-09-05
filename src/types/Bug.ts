@@ -10,6 +10,10 @@ export interface Bug {
   screenshot?: string; // Base64 da imagem
   platform?: Platform; // Android, iOS, Web, etc.
   deviceInfo?: string; // Informações adicionais do dispositivo
+  version: string; // Versão do app quando o bug foi criado
+  createdBy: string; // Nome do usuário que criou
+  lastModifiedBy?: string; // Nome do usuário que fez a última modificação
+  lastModifiedAt?: Date; // Data da última modificação
 }
 
 export type BugCategory = 'interface' | 'ux' | 'logica' | 'performance' | 'seguranca' | 'outros';

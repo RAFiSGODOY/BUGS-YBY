@@ -14,7 +14,7 @@ interface BugFormProps {
     screenshot?: string;
     platform?: Platform;
     deviceInfo?: string;
-  }) => void;
+  }) => Promise<void>;
 }
 
 export function BugForm({ onAdd }: BugFormProps) {
@@ -26,28 +26,37 @@ export function BugForm({ onAdd }: BugFormProps) {
   const [screenshot, setScreenshot] = useState<string>('');
   const [platform, setPlatform] = useState<Platform>(detectPlatform());
   const [deviceInfo] = useState<string>(getDeviceInfo());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || isSubmitting) return;
 
-    onAdd({
-      title: title.trim(),
-      description: description.trim(),
-      category,
-      priority,
-      isFixed: false,
-      screenshot: screenshot || undefined,
-      platform,
-      deviceInfo
-    });
+    setIsSubmitting(true);
+    try {
+      await onAdd({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        priority,
+        isFixed: false,
+        screenshot: screenshot || undefined,
+        platform,
+        deviceInfo
+      });
 
-    setTitle('');
-    setDescription('');
-    setCategory('interface');
-    setPriority('media');
-    setScreenshot('');
-    setPlatform(detectPlatform());
+      setTitle('');
+      setDescription('');
+      setCategory('interface');
+      setPriority('media');
+      setScreenshot('');
+      setPlatform(detectPlatform());
+      setIsOpen(false);
+    } catch (error) {
+      console.error('❌ Erro ao criar bug:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
     setIsOpen(false);
   };
 
@@ -171,9 +180,17 @@ export function BugForm({ onAdd }: BugFormProps) {
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+            disabled={isSubmitting}
+            className={`flex-1 py-3 px-6 rounded-lg transition-colors duration-200 font-medium flex items-center justify-center gap-2 ${
+              isSubmitting 
+                ? 'bg-gray-400 text-white cursor-not-allowed' 
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
           >
-            Adicionar Bug
+            {isSubmitting && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            )}
+            {isSubmitting ? 'Criando...' : 'Adicionar Bug'}
           </button>
           <button
             type="button"
